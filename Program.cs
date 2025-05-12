@@ -8,7 +8,7 @@ namespace DalamudPluginServer
 {
 	internal class Program
 	{
-		static void Main(string[] args)
+		static async Task Main(string[] args)
 		{
 			PluginDatabase plugins = new PluginDatabase("plugins");
 
