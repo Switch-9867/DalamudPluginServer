@@ -10,42 +10,35 @@ namespace DalamudPluginServer
 	public class PluginDatabase
 	{
 		private string pluginRepo;
+		private static readonly string pluginsPath = "plugins";
+		public string PluginsRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), pluginsPath); } }
 
-		private string pluginsPath;
-		private string pluginRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), pluginsPath); } }
-
-		private Dictionary<string, Plugin> pluginJson;
-		private Dictionary<string, PluginPaths> pluginPaths;
+		private Dictionary<string, Plugin> PluginDict { get; set; } = new Dictionary<string, Plugin>();
+		private Dictionary<string, PluginFilePaths> pluginPaths { get; set; } = new Dictionary<string, PluginFilePaths>();
 
 
-		public PluginDatabase(string _pluginsPath)
+		public PluginDatabase()
 		{
-			pluginsPath = _pluginsPath;
-			if (!Directory.Exists(pluginRoot)) Directory.CreateDirectory(pluginRoot);
+			if (!Directory.Exists(PluginsRoot)) Directory.CreateDirectory(PluginsRoot);
 			GeneratePluginRepo();
 		}
 
 		internal string GetPluginRepo()
 		{
-			if (pluginRepo == null)
-			{
-				GeneratePluginRepo();
-			}
+			if (pluginRepo == null) GeneratePluginRepo();
 			return pluginRepo;
 		}
 
 		private void GeneratePluginRepo()
 		{
-			LoadPluginsFromDisk();
-
-			Plugin[] plugins = pluginJson.Values.ToArray();
+			Plugin[] plugins = PluginDict.Values.ToArray();
 			pluginRepo = JsonConvert.SerializeObject(plugins);
 		}
 
 		private void LoadPluginsFromDisk()
 		{
-			pluginJson = new Dictionary<string, Plugin>();
-			pluginPaths = new Dictionary<string, PluginPaths>();
+			PluginDict = new Dictionary<string, Plugin>();
+			pluginPaths = new Dictionary<string, PluginFilePaths>();
 
 			List<string> pD = GetPluginDirectories();
 
@@ -83,18 +76,18 @@ namespace DalamudPluginServer
 
 				if (jsonPath == null) 
 				{
-					Console.WriteLine($"Missing json in plugin directory: {p}");
+					Console.WriteLine($"[!] Missing json in plugin directory: {p}");
 					continue;
 				};
 				if (zipPath == null)
 				{
-					Console.WriteLine($"Missing zip in plugin directory: {p}");
+					Console.WriteLine($"[!] Missing zip in plugin directory: {p}");
 					continue;
 				};
 				if (iconPath == null)
 				{
 					// missing icon is okay, just a warning
-					Console.WriteLine($"Missing icon in plugin directory: {p}");
+					Console.WriteLine($"[*] Missing icon in plugin directory: {p}");
 				};
 
 				string jsonString = File.ReadAllText(jsonPath); 
@@ -106,7 +99,7 @@ namespace DalamudPluginServer
 				plugin.DownloadLinkUpdate = WebServer.CreatePluginDownloadUrl(plugin);
 				plugin.IconUrl = WebServer.CreatePluginIconUrl(plugin);
 
-				PluginPaths _pluginPaths = new PluginPaths();
+				PluginFilePaths _pluginPaths = new PluginFilePaths();
 				_pluginPaths.IconPath = iconPath;
 				_pluginPaths.ZipPath = zipPath;
 
@@ -116,7 +109,7 @@ namespace DalamudPluginServer
 					continue;
 				}
 
-				pluginJson[plugin.InternalName] = plugin;
+				PluginDict[plugin.InternalName] = plugin;
 				pluginPaths[plugin.InternalName] = _pluginPaths;
 			}
 		}
@@ -124,24 +117,24 @@ namespace DalamudPluginServer
 		private List<string> GetPluginDirectories()
 		{
 			Dictionary<string, string> dict = new Dictionary<string, string>();
-			return Directory.EnumerateDirectories(pluginRoot).ToList();
+			return Directory.EnumerateDirectories(PluginsRoot).ToList();
 		}
 
 		internal byte[] GetZip(string pluginInternalName)
 		{
-			PluginPaths plugin = pluginPaths[pluginInternalName];
+			PluginFilePaths plugin = pluginPaths[pluginInternalName];
 			byte[] bytes = File.ReadAllBytes(plugin.ZipPath);
 			return bytes;
 		}
 
 		internal byte[] GetPluginIcon(string pluginInternalName)
 		{
-			PluginPaths plugin = pluginPaths[pluginInternalName];
+			PluginFilePaths plugin = pluginPaths[pluginInternalName];
 			byte[] bytes = File.ReadAllBytes(plugin.IconPath);
 			return bytes;
 		}
 
-		public struct PluginPaths
+		public struct PluginFilePaths
 		{
 			public string PluginName { get; set; }
 			public string IconPath { get; set; }
