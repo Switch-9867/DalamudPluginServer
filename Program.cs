@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,14 +9,29 @@ namespace DalamudPluginServer
 {
 	internal class Program
 	{
-		static void Main(string[] args)
+		static PluginDatabase PluginDatabase { get; set; }
+		static WebServer WebServer { get; set; }
+		static PluginFileManager PluginManager { get; set; }
+
+		static async Task Main(string[] args)
 		{
-			PluginDatabase plugins = new PluginDatabase("plugins");
+			string[] repoUrls = ApplicationInI.GetRepoUrls();
 
-			WebServer ws = new WebServer(3000);
 
-			ws.pluginDatabase = plugins;
-			ws.Start();
+			PluginManager = new PluginFileManager();
+			PluginManager.AddRepo(repoUrls);
+			await PluginManager.DownloadOrUpdateRepositoriesAsync();
+			await PluginManager.BuildRepos();
+			await PluginManager.CopyAllPluginFiles();
+
+			PluginDatabase = new PluginDatabase();
+			PluginDatabase.AddPlugins(PluginManager.GetPlugins());
+			PluginDatabase.UpdateRepo();
+
+			WebServer = new WebServer(3000);
+
+			WebServer.pluginDatabase = PluginDatabase;
+			WebServer.Start();
 
 			Console.WriteLine("Press any key to close.");
 			Console.ReadKey();

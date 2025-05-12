@@ -683,7 +683,7 @@ namespace DalamudPluginServer
 			switch (resourceKind)
 			{
 				case "Icon":
-					resourceBytes = server.pluginDatabase.GetPluginIcon(pluginInternalName);
+					resourceBytes = server.pluginDatabase.GetPluginIconBytes(pluginInternalName);
 					break;
 				default:
 					resourceBytes = new byte[0];
@@ -704,7 +704,7 @@ namespace DalamudPluginServer
 			if (!qStrings.AllKeys.Contains("name")) goto Exit;
 			string pluginInternalName = qStrings["name"];
 
-			byte[] zipBytes = server.pluginDatabase.GetZip(pluginInternalName);
+			byte[] zipBytes = server.pluginDatabase.GetZipBytes(pluginInternalName);
 
 			SendZip(ctx, zipBytes);
 
