@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace DalamudPluginServer
 {
-	internal class PluginManager
+	internal class PluginFileManager
 	{
 		private static readonly string RepoFolder = "repos";
 		private string ReposRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), RepoFolder); } }
 		private List<string> PluginRepos { get; set; } = new List<string>();
 
-		public PluginManager()
+		public PluginFileManager()
 		{
 			if (!Directory.Exists(ReposRoot)) Directory.CreateDirectory(ReposRoot);
 

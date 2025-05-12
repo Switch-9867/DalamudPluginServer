@@ -11,7 +11,7 @@ namespace DalamudPluginServer
 	{
 		static PluginDatabase PluginDatabase { get; set; }
 		static WebServer WebServer { get; set; }
-		static PluginManager PluginManager { get; set; }
+		static PluginFileManager PluginManager { get; set; }
 
 		static async Task Main(string[] args)
 		{
@@ -19,7 +19,7 @@ namespace DalamudPluginServer
 
 			PluginDatabase = new PluginDatabase();
 
-			PluginManager = new PluginManager();
+			PluginManager = new PluginFileManager();
 			PluginManager.AddRepo(repoUrls);
 			await PluginManager.DownloadOrUpdateRepositoriesAsync();
 			await PluginManager.BuildRepos();
