@@ -17,13 +17,16 @@ namespace DalamudPluginServer
 		{
 			string[] repoUrls = ApplicationInI.GetRepoUrls();
 
-			PluginDatabase = new PluginDatabase();
 
 			PluginManager = new PluginFileManager();
 			PluginManager.AddRepo(repoUrls);
 			await PluginManager.DownloadOrUpdateRepositoriesAsync();
 			await PluginManager.BuildRepos();
-			await PluginManager.CopyAllPluginFiles(PluginDatabase.PluginsRoot);
+			await PluginManager.CopyAllPluginFiles();
+
+			PluginDatabase = new PluginDatabase();
+			PluginDatabase.AddPlugins(PluginManager.GetPlugins());
+			PluginDatabase.UpdateRepo();
 
 			WebServer = new WebServer(3000);
 

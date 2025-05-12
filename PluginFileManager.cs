@@ -10,7 +10,10 @@ namespace DalamudPluginServer
 	internal class PluginFileManager
 	{
 		private static readonly string RepoFolder = "repos";
-		private string ReposRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), RepoFolder); } }
+		private static readonly string PluginFolder = "plugins";
+		public string ReposRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), RepoFolder); } }
+		public string PluginsRoot { get { return Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), PluginFolder); } }
+
 		private List<string> PluginRepos { get; set; } = new List<string>();
 
 		public PluginFileManager()
@@ -261,12 +264,12 @@ namespace DalamudPluginServer
 			}
 		}
 
-		internal async Task CopyAllPluginFiles(string newFolder)
+		internal async Task CopyAllPluginFiles()
 		{
 			var repoDirs = Directory.GetDirectories(ReposRoot);
 			foreach (var repoDir in repoDirs)
 			{
-				CopySinglePluginFiles(repoDir, newFolder);
+				CopySinglePluginFiles(repoDir, PluginsRoot);
 			}
 		}
 
@@ -291,13 +294,38 @@ namespace DalamudPluginServer
 			// If the destination directory doesn't exist, create it
 			Directory.CreateDirectory(outputFolder);
 
-			// Copy all the files
+			// Copy all the files in build dir
 			foreach (var file in dir.GetFiles())
 			{
 				string targetFilePath = Path.Combine(outputFolder, file.Name);
 				Console.WriteLine($"[*] Copying {file} to {targetFilePath}");
 				file.CopyTo(targetFilePath, overwrite: true);
 			}
+
+			//look for a icon and condionally copy that
+			var imageFile = Path.Combine(repoDir, "icon.png");
+			if (File.Exists(imageFile)) 
+			{
+				FileInfo file = new FileInfo(imageFile);
+				string targetFilePath = Path.Combine(outputFolder, file.Name);
+				Console.WriteLine($"[*] Copying {file.Name} to {targetFilePath}");
+				file.CopyTo(targetFilePath, overwrite: true);
+			}
+
+		}
+
+		internal List<PluginFileInfo> GetPlugins()
+		{
+			var dirs = Directory.EnumerateDirectories(PluginsRoot);
+
+			var plugins = new List<PluginFileInfo>();
+			foreach (var dir in dirs) 
+			{
+				var plugin = new PluginFileInfo(dir);
+				if(plugin.isValidPlugin()) plugins.Add(plugin);
+			}
+
+			return plugins;
 		}
 	}
 }

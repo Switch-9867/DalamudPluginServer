@@ -87,7 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInI.cs" />
+    <Compile Include="Plugin.cs" />
     <Compile Include="PluginDatabase.cs" />
+    <Compile Include="PluginFileInfo.cs" />
     <Compile Include="PluginFileManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
